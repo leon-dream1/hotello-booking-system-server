@@ -32,10 +32,33 @@ async function run() {
       res.send("Hello From MongoDB Hotelllll!");
     });
 
+    //Room collection
+
     const roomCollection = client.db("HotelloBookingSystem").collection("room");
 
     app.get("/room", async (req, res) => {
       const result = await roomCollection.find({}).toArray();
+      res.send(result);
+    });
+
+    app.get("/room/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await roomCollection.findOne(query);
+      res.send(result);
+    });
+
+    //Booking Collection
+    const bookingCollection = client
+      .db("HotelloBookingSystem")
+      .collection("booking");
+
+    app.post("/booking", async (req, res) => {
+      const bookingData = req.body;
+      const id = req.body?._id;
+
+      console.log(typeof req.body._id);
+      const result = await bookingCollection.insertOne(bookingData);
       res.send(result);
     });
 
