@@ -43,6 +43,7 @@ async function run() {
 
     app.get("/room/:id", async (req, res) => {
       const id = req.params.id;
+      // console.log(id);
       const query = { _id: new ObjectId(id) };
       const result = await roomCollection.findOne(query);
       res.send(result);
@@ -55,11 +56,23 @@ async function run() {
 
     app.post("/booking", async (req, res) => {
       const bookingData = req.body;
-      const id = req.body?._id;
+      const id = req.query.id;
 
-      console.log(typeof req.body._id);
       const result = await bookingCollection.insertOne(bookingData);
-      res.send(result);
+
+      if (result.acknowledged) {
+        const filter = { _id: new ObjectId(req.query.id) };
+        const updateDocument = {
+          $set: {
+            availability: false,
+          },
+        };
+        const updatedResult = await roomCollection.updateOne(
+          filter,
+          updateDocument
+        );
+        res.send(updatedResult);
+      }
     });
 
     console.log(
