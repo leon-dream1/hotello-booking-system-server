@@ -37,7 +37,8 @@ async function run() {
     const roomCollection = client.db("HotelloBookingSystem").collection("room");
 
     app.get("/room", async (req, res) => {
-      const result = await roomCollection.find({}).toArray();
+      const limit = req.query.limit;
+      const result = await roomCollection.find({}).limit(parseInt(limit)).toArray();
       res.send(result);
     });
 
