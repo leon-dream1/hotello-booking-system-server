@@ -38,7 +38,10 @@ async function run() {
 
     app.get("/room", async (req, res) => {
       const limit = req.query.limit;
-      const result = await roomCollection.find({}).limit(parseInt(limit)).toArray();
+      const result = await roomCollection
+        .find({})
+        .limit(parseInt(limit))
+        .toArray();
       res.send(result);
     });
 
@@ -57,11 +60,9 @@ async function run() {
 
     app.post("/booking", async (req, res) => {
       const bookingData = req.body;
-      // console.log(req.body);
-      const id = req.query.id;
+      // const id = req.query.id;
 
       const result = await bookingCollection.insertOne(bookingData);
-      // console.log("Bboking", result);
 
       if (result.acknowledged) {
         const filter = { _id: new ObjectId(req.query.id) };
@@ -74,7 +75,6 @@ async function run() {
           filter,
           updateDocument
         );
-        // console.log("updated",updatedResult);
         res.send(updatedResult);
       }
     });
@@ -86,13 +86,33 @@ async function run() {
       res.send(result);
     });
 
+    app.patch("/booking/:id", async (req, res) => {
+      const id = req.params.id;
+      const date = req.body.date;
+      console.log(id, date);
+      const filter = { _id: new ObjectId(id) };
+      const updateDocument = {
+        $set: {
+          date: date,
+        },
+      };
+      const updatedResult = await bookingCollection.updateOne(
+        filter,
+        updateDocument
+      );
+      res.send(updatedResult);
+    });
+
     app.delete("/booking/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: id };
+      const roomId = req.query.room_id;
+      console.log(typeof roomId);
+      const query = { _id: new ObjectId(id) };
       const result = await bookingCollection.deleteOne(query);
+      console.log(result);
 
       if (result.deletedCount) {
-        const filter = { _id: new ObjectId(req.params.id) };
+        const filter = { room_id: parseInt(roomId) };
         const updateDocument = {
           $set: {
             availability: true,
@@ -102,6 +122,7 @@ async function run() {
           filter,
           updateDocument
         );
+        console.log(updatedResult);
         res.send(updatedResult);
       }
     });
