@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+var jwt = require("jsonwebtoken");
+var cookieParser = require("cookie-parser");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 
@@ -8,8 +10,14 @@ const port = process.env.PORT || 5000;
 const app = express();
 
 //middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:5173"],
+    credentials: true,
+  })
+);
 app.use(express.json());
+app.use(cookieParser());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.l574mko.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -32,9 +40,52 @@ async function run() {
       res.send("Hello From MongoDB Hotelllll!");
     });
 
+    //JWT
+    const verifyAPI = (req, res, next) => {
+      const token = req?.cookies?.token;
+      console.log(token);
+      if (!token) {
+        return res.status(401).send("UnAuthorized access");
+      }
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+          return res.status(401).send("UnAuthorized access");
+        }
+        req.user = decoded;
+        next();
+      });
+    };
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+    };
+
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      console.log("user for token", user);
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "30d",
+      });
+      res.cookie("token", token, cookieOptions).send({ success: true });
+    });
+
+    app.post("/logout", async (req, res) => {
+      res
+        .clearCookie("token", { ...cookieOptions, maxAge: 0 })
+        .send({ success: true });
+    });
+
     //Room collection
 
     const roomCollection = client.db("HotelloBookingSystem").collection("room");
+    const reviewCollection = client
+      .db("HotelloBookingSystem")
+      .collection("review");
+    const bookingCollection = client
+      .db("HotelloBookingSystem")
+      .collection("booking");
 
     app.get("/room", async (req, res) => {
       const limit = req.query.limit;
@@ -54,14 +105,8 @@ async function run() {
     });
 
     //Booking Collection
-    const bookingCollection = client
-      .db("HotelloBookingSystem")
-      .collection("booking");
-
     app.post("/booking", async (req, res) => {
       const bookingData = req.body;
-      // const id = req.query.id;
-
       const result = await bookingCollection.insertOne(bookingData);
 
       if (result.acknowledged) {
@@ -79,8 +124,11 @@ async function run() {
       }
     });
 
-    app.get("/booking/:email", async (req, res) => {
+    app.get("/booking/:email", verifyAPI, async (req, res) => {
       const email = req.params.email;
+      if (email !== req.user.email) {
+        return res.status(403).send("forbidden access");
+      }
       const query = { email: email };
       const result = await bookingCollection.find(query).toArray();
       res.send(result);
@@ -116,6 +164,30 @@ async function run() {
         const updateDocument = {
           $set: {
             availability: true,
+          },
+        };
+        const updatedResult = await roomCollection.updateOne(
+          filter,
+          updateDocument
+        );
+        console.log(updatedResult);
+        res.send(updatedResult);
+      }
+    });
+
+    //review Collection
+
+    app.post("/review", async (req, res) => {
+      const bookingData = req.body;
+      const roomId = req.query.room_id;
+      console.log(bookingData, roomId);
+      const result = await reviewCollection.insertOne(bookingData);
+
+      if (result.acknowledged) {
+        const filter = { room_id: parseInt(roomId) };
+        const updateDocument = {
+          $inc: {
+            review: 1,
           },
         };
         const updatedResult = await roomCollection.updateOne(
