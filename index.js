@@ -43,7 +43,7 @@ async function run() {
     //JWT
     const verifyAPI = (req, res, next) => {
       const token = req?.cookies?.token;
-      console.log(token);
+      // console.log(token);
       if (!token) {
         return res.status(401).send("UnAuthorized access");
       }
@@ -96,8 +96,18 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/filterRoom", async (req, res) => {
+      const min = parseInt(req.query.min);
+      const max = parseInt(req.query.max);
+      const result = await roomCollection
+        .find({price_per_night : {$gte: min, $lte: max}})
+        .toArray();
+      res.send(result);
+    });
+
     app.get("/room/:id", async (req, res) => {
       const id = req.params.id;
+
       // console.log(id);
       const query = { _id: new ObjectId(id) };
       const result = await roomCollection.findOne(query);
@@ -178,7 +188,10 @@ async function run() {
     //review Collection
 
     app.get("/review", async (req, res) => {
-      const result = await roomCollection.find({}).toArray();
+      const result = await reviewCollection
+        .find({})
+        .sort({ date: -1 })
+        .toArray();
       res.send(result);
     });
 
