@@ -177,10 +177,16 @@ async function run() {
 
     //review Collection
 
+    app.get("/review", async (req, res) => {
+      const result = await roomCollection.find({}).toArray();
+      res.send(result);
+    });
+
     app.post("/review", async (req, res) => {
       const bookingData = req.body;
       const roomId = req.query.room_id;
-      console.log(bookingData, roomId);
+      console.log(roomId);
+      console.log(typeof roomId);
       const result = await reviewCollection.insertOne(bookingData);
 
       if (result.acknowledged) {
