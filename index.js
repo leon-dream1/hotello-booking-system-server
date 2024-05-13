@@ -100,7 +100,7 @@ async function run() {
       const min = parseInt(req.query.min);
       const max = parseInt(req.query.max);
       const result = await roomCollection
-        .find({price_per_night : {$gte: min, $lte: max}})
+        .find({ price_per_night: { $gte: min, $lte: max } })
         .toArray();
       res.send(result);
     });
@@ -142,6 +142,19 @@ async function run() {
       const query = { email: email };
       const result = await bookingCollection.find(query).toArray();
       res.send(result);
+    });
+
+    app.get("/checkBookingForReview/:id", async (req, res) => {
+      const roomId = parseInt(req.params.id);
+      console.log(roomId);
+      const query = { room_id: roomId };
+      const result = await bookingCollection.findOne(query);
+      console.log(result);
+      if (result) {
+        res.send({ success: true });
+      } else {
+        res.send({ success: false });
+      }
     });
 
     app.patch("/booking/:id", async (req, res) => {
