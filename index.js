@@ -47,7 +47,6 @@ async function run() {
     //JWT
     const verifyAPI = (req, res, next) => {
       const token = req?.cookies?.token;
-      // console.log(token);
       if (!token) {
         return res.status(401).send("UnAuthorized access");
       }
@@ -68,7 +67,6 @@ async function run() {
 
     app.post("/jwt", async (req, res) => {
       const user = req.body;
-      console.log("user for token", user);
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: "30d",
       });
@@ -111,8 +109,6 @@ async function run() {
 
     app.get("/room/:id", async (req, res) => {
       const id = req.params.id;
-
-      // console.log(id);
       const query = { _id: new ObjectId(id) };
       const result = await roomCollection.findOne(query);
       res.send(result);
@@ -150,10 +146,8 @@ async function run() {
 
     app.get("/checkBookingForReview/:id", async (req, res) => {
       const roomId = parseInt(req.params.id);
-      console.log(roomId);
       const query = { room_id: roomId };
       const result = await bookingCollection.findOne(query);
-      console.log(result);
       if (result) {
         res.send({ success: true });
       } else {
@@ -164,7 +158,6 @@ async function run() {
     app.patch("/booking/:id", async (req, res) => {
       const id = req.params.id;
       const date = req.body.date;
-      console.log(id, date);
       const filter = { _id: new ObjectId(id) };
       const updateDocument = {
         $set: {
@@ -181,10 +174,8 @@ async function run() {
     app.delete("/booking/:id", async (req, res) => {
       const id = req.params.id;
       const roomId = req.query.room_id;
-      console.log(typeof roomId);
       const query = { _id: new ObjectId(id) };
       const result = await bookingCollection.deleteOne(query);
-      console.log(result);
 
       if (result.deletedCount) {
         const filter = { room_id: parseInt(roomId) };
@@ -197,7 +188,6 @@ async function run() {
           filter,
           updateDocument
         );
-        console.log(updatedResult);
         res.send(updatedResult);
       }
     });
@@ -215,8 +205,6 @@ async function run() {
     app.post("/review", async (req, res) => {
       const bookingData = req.body;
       const roomId = req.query.room_id;
-      console.log(roomId);
-      console.log(typeof roomId);
       const result = await reviewCollection.insertOne(bookingData);
 
       if (result.acknowledged) {
@@ -230,7 +218,6 @@ async function run() {
           filter,
           updateDocument
         );
-        console.log(updatedResult);
         res.send(updatedResult);
       }
     });
