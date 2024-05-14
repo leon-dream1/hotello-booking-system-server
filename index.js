@@ -12,7 +12,11 @@ const app = express();
 //middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: [
+      "http://localhost:5173",
+      "https://travello-booking-room.firebaseapp.com",
+      "https://travello-booking-room.web.app",
+    ],
     credentials: true,
   })
 );
