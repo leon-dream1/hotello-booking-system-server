@@ -222,6 +222,13 @@ async function run() {
       }
     });
 
+    //Subscription
+    app.post("/subscriber", async (req, res) => {
+      const subscriberEmail = req.body;
+      const result = await bookingCollection.insertOne(subscriberEmail);
+      res.send(result);
+    });
+
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
