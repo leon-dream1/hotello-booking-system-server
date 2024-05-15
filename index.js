@@ -147,7 +147,6 @@ async function run() {
     app.get("/checkBookingForReview/:id", async (req, res) => {
       const roomId = parseInt(req.params.id);
       const userEmail = req.query.email;
-
       const query = { room_id: roomId, email: userEmail };
       const result = await bookingCollection.findOne(query);
       if (result) {
