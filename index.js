@@ -223,9 +223,12 @@ async function run() {
     });
 
     //Subscription
+    const subscriberCollection = client
+      .db("HotelloBookingSystem")
+      .collection("subscriber");
     app.post("/subscriber", async (req, res) => {
       const subscriberEmail = req.body;
-      const result = await bookingCollection.insertOne(subscriberEmail);
+      const result = await subscriberCollection.insertOne(subscriberEmail);
       res.send(result);
     });
 
