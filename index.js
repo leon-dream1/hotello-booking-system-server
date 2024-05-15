@@ -227,8 +227,8 @@ async function run() {
       .db("HotelloBookingSystem")
       .collection("subscriber");
     app.post("/subscriber", async (req, res) => {
-      const subscriberEmail = req.body;
-      const result = await subscriberCollection.insertOne(subscriberEmail);
+      const subscriberData = req.body;
+      const result = await subscriberCollection.insertOne(subscriberData);
       res.send(result);
     });
 
