@@ -101,8 +101,16 @@ async function run() {
     app.get("/filterRoom", async (req, res) => {
       const min = parseInt(req.query.min);
       const max = parseInt(req.query.max);
+      const rating = req.query.rating;
       const result = await roomCollection
-        .find({ price_per_night: { $gte: min, $lte: max } })
+        .find({
+          $or: [
+            {
+              price_per_night: { $gte: min, $lte: max },
+            },
+            { rating: rating },
+          ],
+        })
         .toArray();
       res.send(result);
     });
@@ -205,6 +213,8 @@ async function run() {
 
     app.post("/review", async (req, res) => {
       const bookingData = req.body;
+      const rating = req.body.rating;
+      console.log(rating);
       const roomId = req.query.room_id;
       const result = await reviewCollection.insertOne(bookingData);
 
@@ -213,6 +223,9 @@ async function run() {
         const updateDocument = {
           $inc: {
             review: 1,
+          },
+          $set: {
+            rating,
           },
         };
         const updatedResult = await roomCollection.updateOne(
